@@ -1,0 +1,89 @@
+#!/bin/bash
+declare -A usage
+declare -A varia
+
+version=1.0
+summary="$0 [options]"
+
+usage[d]="The device that will be copied"
+varia[d]=device
+device=""
+
+usage[i]="Install and exit"
+varia[i]=install
+install=false
+
+usage[e]="Regular expression. Files that match it recursiverly will be copied"
+varia[e]=regex
+regex=*
+
+usage[c]="Remove ALL device content after copy. Without confirmation"
+varia[c]=remove
+remove=false
+
+# TODO make it a table, and save to several places
+usage[l]="Location where file will be sent. Support local filesystem"
+varia[l]=location
+location=""
+
+usage[n]="Notify when the copy is complete. Send an http get request."
+varia[n]=notify_end
+notify_end=""
+
+usage[f]="Each file will notify this URI when begining to copy"
+varia[f]=notify_file
+notify_file=""
+
+usage[p]="Prompt for the name"
+varia[p]=prompt
+prompt=""
+
+usage[u]="Udev system file"
+varia[u]=udev_file
+udev_file="/etc/udev/rules.d/usb-emptyer.rules"
+
+usage[s]="Date format string for temporar name"
+varia[s]=date_format
+date_format="+%Y-%m-%d.%H:%M:%S"
+
+usage[x]="Url to notify on failure"
+varia[x]=notify_failure
+notify_failure=
+
+. driglibash-args
+root_or_die
+
+# One time jobs
+
+if [ "$install" == true ] ; then
+  cat > "$udev_file" <<-EOF
+    SUBSYSTEM=="block", KERNEL=="*", RUN+="/home/py/Desktop/test-sdcardemptyer.py -a -d %k -l localhost:49291/new -n localhost:49291/end -e '*.md'"
+  EOF
+  udevadm control --reload-rules
+  exit 0
+fi
+
+# Test for mandatory arguments
+if [ -z "$location" ] ; then die "No destination supplied" ; fi
+if [ "$ACTION" != "add" ] ; then die "Action '$ACTION' not supported" ; fi # TODO filter udev
+
+# Construct needed strings
+tmpname="/$(date $date_format)"
+
+run mount "/dev/$device" "/mnt"
+clean "umount /mnt"
+
+for line in "$(find -name '$regex')" ; do
+  cp -r "$line" "$location"
+  if [ -z "$notify_file" ] ; then curl "$notify_file$tmpname/$line" ; fi
+  # curl \
+  #   --header "Content-Type:application/octet-stream" \
+  #   --trace-ascii debugdump.txt \
+  #   -X POST \
+  #   --data-binary @{} "$location$tmpname" \
+done
+
+# Terminating
+if [ "$delete" == true ] ; then run rm -rf "/mnt/*" ; fi
+if [ -n "$notify_end" ] ; then run curl "$notify_end$tmpname" ; fi
+clean

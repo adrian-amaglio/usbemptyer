@@ -1,0 +1,5 @@
+#!/bin/bash
+
+./usbemptyer -i
+nginx -c nginx.conf
+python apiserver.py
