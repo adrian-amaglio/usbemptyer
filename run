@@ -1,5 +1,14 @@
 #!/bin/bash
 
-./usbemptyer -i
-nginx -c nginx.conf
-python apiserver.py
+. driglibash-base
+root_or_die
+dir="$(where $0)"
+
+"$dir/usbemptyer" -i
+
+nginx -c "$dir/nginx.conf"
+clean 'killall nginx'
+
+"$dir/apiserver.py"
+
+clean

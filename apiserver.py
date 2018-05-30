@@ -2,11 +2,14 @@
 
 import os, json
 from bottle import route, run, template, get, post
-from bottle.ext.websocket import GeventWebSocketServer
-from bottle.ext.websocket import websocket
+from bottle.ext.websocket import GeventWebSocketServer, websocket
+from geventwebsocket.exceptions import WebSocketError
 
 # The global websocket to controll the web interface
 w = None
+
+# The dictionary containing all names
+names = {}
 
 def send(action, directory, info=""):
   if w != None:
@@ -17,18 +20,30 @@ def send(action, directory, info=""):
 # Websocket connection
 @get('/websocket', apply=[websocket])
 def echo(ws):
+  global w
   w = ws
+  print('Connected ! '+str(w))
+  while True:
+    try:
+      message = w.receive()
+      if message is not None:
+        print(message)
+        name = json.loads(message)
+        names[name['directory']] = name['name']
+    except WebSocketError:
+      print('Socket Error. Should be a disconnection.')
 
 # HTTP API
-@route('/end/<directory>')
+@get('/end/<directory>')
 def end(directory):
-  w.send('end', directory)
+  send('end', directory)
+  return names[directory] if directory in names else 'no'
 
-@post('/start/<directory>')
+@get('/start/<directory>')
 def start(directory):
   send('start', directory)
 
-@route('/file/<directory>/<filename>')
+@get('/file/<directory>/<filename>')
 def file(directory, filename):
   send('file', directory, filename)
 

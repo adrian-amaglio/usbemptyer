@@ -56,9 +56,11 @@ root_or_die
 # One time jobs
 
 if [ "$install" == true ] ; then
+  current_dir="$(where "$0")"
+  # TODO escape the executable location
   cat > "$udev_file" <<-EOF
-    SUBSYSTEM=="block", KERNEL=="*", RUN+="/home/py/Desktop/test-sdcardemptyer.py -a -d %k -l localhost:49291/new -n localhost:49291/end -e '*.md'"
-  EOF
+    SUBSYSTEM=="block", KERNEL=="*", RUN+="$current_dir/usbemptyer -d %k -l /home/py/Desktop/usbdata -f http://localhost:49291/file -n http://localhost:49291/end -s '+%d.%H:%M:%S -e '*.test'"
+EOF
   udevadm control --reload-rules
   exit 0
 fi
@@ -85,5 +87,6 @@ done
 
 # Terminating
 if [ "$delete" == true ] ; then run rm -rf "/mnt/*" ; fi
-if [ -n "$notify_end" ] ; then run curl "$notify_end$tmpname" ; fi
+new_name=$(curl "$notify_end$tmpname")
+mv "$location$tmpname" "$location$tmpname-$new_name"
 clean
