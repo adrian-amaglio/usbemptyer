@@ -53,6 +53,8 @@ notify_failure=
 . driglibash-args
 root_or_die
 
+echo "usbemptier"
+
 # One time jobs
 
 if [ "$install" == true ] ; then
@@ -70,23 +72,27 @@ if [ -z "$location" ] ; then die "No destination supplied" ; fi
 if [ "$ACTION" != "add" ] ; then die "Action '$ACTION' not supported" ; fi # TODO filter udev
 
 # Construct needed strings
-tmpname="/$(date $date_format)"
+tmpname="$(date $date_format)"
 
+run mkdir "$location"
 run mount "/dev/$device" "/mnt"
 clean "umount /mnt"
 
 for line in "$(find -name '$regex')" ; do
   cp -r "$line" "$location"
-  if [ -z "$notify_file" ] ; then curl "$notify_file$tmpname/$line" ; fi
+  if [ -z "$notify_file" ] ; then curl "$notify_file/$tmpname/$line" ; fi
   # curl \
   #   --header "Content-Type:application/octet-stream" \
   #   --trace-ascii debugdump.txt \
   #   -X POST \
-  #   --data-binary @{} "$location$tmpname" \
+  #   --data-binary @{} "$location/$tmpname" \
 done
 
 # Terminating
 if [ "$delete" == true ] ; then run rm -rf "/mnt/*" ; fi
-new_name=$(curl "$notify_end$tmpname")
-mv "$location$tmpname" "$location$tmpname-$new_name"
+new_name="no"
+while [ "$new_name" == "no" ] ; do
+  new_name=$(curl "$notify_end/$tmpname")
+done
+mv "$location/$tmpname" "$location/$new_name-$tmpname"
 clean
