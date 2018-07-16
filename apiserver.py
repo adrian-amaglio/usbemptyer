@@ -38,20 +38,20 @@ def echo(ws):
       print('Socket Error. Maybe a disconnection.')
 
 ######################### HTTP API #################################
-@get('/<mac>/<usb>/end/<directory>')
+@get('/end/<directory>')
 def end(mac, usb, directory):
   send('end', directory)
   return names[directory] if directory in names else 'no'
 
-@get('/<mac>/<usb>/start/<directory>')
+@get('/start/<directory>')
 def start(mac, usb, directory):
   send('start', directory)
 
-@get('/<mac>/<usb>/file/<directory>/<filename>')
+@get('/file/<directory>/<filename>')
 def file(mac, usb, directory, filename):
   send('file', directory, filename)
 
-@get('/<mac>/<usb>/fail/<directory>/<message>')
+@get('/fail/<directory>/<message>')
 def fail(mac, usb, directory, message):
   send('fail', directory, message)
 
