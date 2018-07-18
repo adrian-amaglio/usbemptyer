@@ -26,7 +26,7 @@ remove=false
 # TODO make it a table, and save to several places
 usage[l]="Location where file will be sent. Support local filesystem"
 varia[l]=location
-location="/home/py/Desktop/usbdata"
+location="/data/bruts"
 
 usage[n]="Notify when the copy is complete. Send an http get request."
 varia[n]=notify_end
