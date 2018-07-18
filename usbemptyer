@@ -17,7 +17,7 @@ install=false
 
 usage[e]="Regular expression. Files that match it recursiverly will be copied"
 varia[e]=regex
-regex=*
+regex='*.wav'
 
 usage[c]="Remove ALL device content after copy. Without confirmation"
 varia[c]=remove
@@ -50,7 +50,7 @@ udev_file="/etc/udev/rules.d/usb-emptyer.rules"
 
 usage[s]="Date format string for temporar name"
 varia[s]=date_format
-date_format="+%Y-%m-%d.%H-%M-%S"
+date_format="+%Y.%m.%d-%H.%M.%S"
 
 usage[x]="Url to notify on failure"
 varia[x]=notify_failure
@@ -63,7 +63,7 @@ if [ "$install" == true ] ; then
   current_dir="$(where "$0")"
   # TODO escape the executable location
   cat > "$udev_file" <<-EOF
-    SUBSYSTEM=="block", KERNEL=="*", RUN+="$current_dir/usbemptyer -d %k -x '$notify_failure' -l '$location' -f '$notify_file' -n '$notify_end' -b '$notify_start' -s '+%d.%H-%M-%S -e '*.wav'"
+    SUBSYSTEM=="block", KERNEL=="*", RUN+="$current_dir/usbemptyer -d %k -x '$notify_failure' -l '$location' -f '$notify_file' -n '$notify_end' -b '$notify_start' -s '$date_format' -e '$regex'"
 EOF
   udevadm control --reload-rules
   exit 0
