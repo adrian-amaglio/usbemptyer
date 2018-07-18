@@ -2,7 +2,7 @@
 declare -A usage
 declare -A varia
 
-default_host="http://localhost:49291"
+default_host="http://local.dahus:49291"
 
 version=1.0
 summary="$0 [options]"
@@ -15,7 +15,7 @@ usage[i]="Install and exit"
 varia[i]=install
 install=false
 
-usage[e]="Regular expression. Files that match it recursiverly will be copied"
+usage[e]="Regular expression. Files that match it recursiverly will be copied. Casse INsensitive"
 varia[e]=regex
 regex='*.wav'
 
@@ -82,7 +82,7 @@ clean "umount /mnt"
 
 if [ -n "$notify_start" ] ; then curl "$notify_start/$tmpname" ; fi
 
-for line in $(find /mnt -name "$regex") ; do
+for line in $(find /mnt -iname "$regex") ; do
   short_name="$(basename $line)"
   if [ -n "$notify_file" ] ; then curl "$notify_file/$tmpname/$short_name" ; fi
   run cp -r "$line" "$location/$tmpname/$short_name"
@@ -101,4 +101,6 @@ while [ "$new_name" == "no" ] ; do
   sleep 3
 done
 mv "$location/$tmpname" "$location/$tmpname--$new_name"
+
+run find /mnt -iname "$regex" -exec rm "{}" ;
 clean
