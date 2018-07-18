@@ -13,7 +13,7 @@ window.onload = function (){
       connected: "Not connected",
 		},
 		created:function(){
-			this.websocket = new WebSocket('ws://localhost:49291/websocket')
+			this.websocket = new WebSocket('ws://local.dahus:49291/websocket')
       this.websocket.onopen  = (event) => { this.connected = "Connected" }
       this.websocket.onerror = (event) => { this.connected = "Error" }
       this.websocket.onclose = (event) => { this.connected = "Closed" }

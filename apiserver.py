@@ -55,4 +55,4 @@ def file(directory, filename):
 def fail(directory, message):
   send('fail', directory, message)
 
-run(host='localhost', port=49291, server=GeventWebSocketServer)
+run(host='local.dahus', port=49291, server=GeventWebSocketServer)

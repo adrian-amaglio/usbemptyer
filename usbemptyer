@@ -2,6 +2,8 @@
 declare -A usage
 declare -A varia
 
+default_host="http://localhost:49291"
+
 version=1.0
 summary="$0 [options]"
 
@@ -24,19 +26,19 @@ remove=false
 # TODO make it a table, and save to several places
 usage[l]="Location where file will be sent. Support local filesystem"
 varia[l]=location
-location=""
+location="/home/py/Desktop/usbdata"
 
 usage[n]="Notify when the copy is complete. Send an http get request."
 varia[n]=notify_end
-notify_end=""
+notify_end="$default_host/end"
 
 usage[f]="Each file will notify this URI when begining to copy"
 varia[f]=notify_file
-notify_file=""
+notify_file="$default_host/file"
 
 usage[b]="Notified URL when usb is pluged"
 varia[b]=notify_start
-notify_start=""
+notify_start="$default_host/start"
 
 usage[p]="Prompt for the name"
 varia[p]=prompt
@@ -52,20 +54,16 @@ date_format="+%Y-%m-%d.%H-%M-%S"
 
 usage[x]="Url to notify on failure"
 varia[x]=notify_failure
-notify_failure=
+notify_failure="$default_host/fail"
 
 . driglibash-args
 root_or_die
-
-echo "usbemptier"
-
-# One time jobs
 
 if [ "$install" == true ] ; then
   current_dir="$(where "$0")"
   # TODO escape the executable location
   cat > "$udev_file" <<-EOF
-    SUBSYSTEM=="block", KERNEL=="*", RUN+="$current_dir/usbemptyer -d %k -l /home/py/Desktop/usbdata -f http://localhost:49291/file -n http://localhost:49291/end -b http://localhost:49291/start -s '+%d.%H-%M-%S -e '*.wav'"
+    SUBSYSTEM=="block", KERNEL=="*", RUN+="$current_dir/usbemptyer -d %k -x '$notify_failure' -l '$location' -f '$notify_file' -n '$notify_end' -b '$notify_start' -s '+%d.%H-%M-%S -e '*.wav'"
 EOF
   udevadm control --reload-rules
   exit 0
@@ -102,5 +100,5 @@ while [ "$new_name" == "no" ] ; do
   new_name=$(curl "$notify_end/$tmpname")
   sleep 3
 done
-mv "$location/$tmpname" "$location/$new_name-$tmpname"
+mv "$location/$tmpname" "$location/$tmpname--$new_name"
 clean
