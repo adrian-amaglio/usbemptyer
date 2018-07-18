@@ -102,5 +102,5 @@ while [ "$new_name" == "no" ] ; do
 done
 mv "$location/$tmpname" "$location/$tmpname--$new_name"
 
-run find /mnt -iname "$regex" -exec rm "{}" ;
+run find /mnt -iname "$regex" -exec rm "{}" \;
 clean
