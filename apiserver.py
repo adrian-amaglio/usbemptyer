@@ -36,6 +36,7 @@ def echo(ws):
         names[name['directory']] = name['name']
     except WebSocketError:
       print('Socket Error. Maybe a disconnection.')
+      break
 
 ######################### HTTP API #################################
 @get('/end/<directory>')
