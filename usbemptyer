@@ -48,7 +48,7 @@ udev_file="/etc/udev/rules.d/usb-emptyer.rules"
 
 usage[s]="Date format string for temporar name"
 varia[s]=date_format
-date_format="+%Y-%m-%d.%H:%M:%S"
+date_format="+%Y-%m-%d.%H-%M-%S"
 
 usage[x]="Url to notify on failure"
 varia[x]=notify_failure
@@ -65,7 +65,7 @@ if [ "$install" == true ] ; then
   current_dir="$(where "$0")"
   # TODO escape the executable location
   cat > "$udev_file" <<-EOF
-    SUBSYSTEM=="block", KERNEL=="*", RUN+="$current_dir/usbemptyer -d %k -l /home/py/Desktop/usbdata -f http://localhost:49291/file -n http://localhost:49291/end -b http://localhost:49291/start -s '+%d.%H:%M:%S -e '*.test'"
+    SUBSYSTEM=="block", KERNEL=="*", RUN+="$current_dir/usbemptyer -d %k -l /home/py/Desktop/usbdata -f http://localhost:49291/file -n http://localhost:49291/end -b http://localhost:49291/start -s '+%d.%H-%M-%S -e '*.wav'"
 EOF
   udevadm control --reload-rules
   exit 0
@@ -78,15 +78,16 @@ if [ "$ACTION" != "add" ] ; then die "Action '$ACTION' not supported" ; fi # TO
 # Construct needed strings
 tmpname="$(date $date_format)"
 
-run mkdir "$location"
+run mkdir -p "$location/$tmpname"
 run mount "/dev/$device" "/mnt"
 clean "umount /mnt"
 
-if [ -z "$notify_start" ] ; then curl "$notify_start/$tmpname" ; fi
+if [ -n "$notify_start" ] ; then curl "$notify_start/$tmpname" ; fi
 
-for line in "$(find -name '$regex')" ; do
-  cp -r "$line" "$location"
-  if [ -z "$notify_file" ] ; then curl "$notify_file/$tmpname/$line" ; fi
+for line in $(find /mnt -name "$regex") ; do
+  short_name="$(basename $line)"
+  if [ -n "$notify_file" ] ; then curl "$notify_file/$tmpname/$short_name" ; fi
+  run cp -r "$line" "$location/$tmpname/$short_name"
   # curl \
   #   --header "Content-Type:application/octet-stream" \
   #   --trace-ascii debugdump.txt \
@@ -95,10 +96,11 @@ for line in "$(find -name '$regex')" ; do
 done
 
 # Terminating
-mv "$location/$tmpname" "$location/$new_name-$tmpname"
-if [ "$delete" == true ] ; then run rm -rf "/mnt/*" ; fi
+#if [ "$remove" == true ] ; then run rm -rf "/mnt/*" ; fi
 new_name="no"
 while [ "$new_name" == "no" ] ; do
   new_name=$(curl "$notify_end/$tmpname")
+  sleep 3
 done
+mv "$location/$tmpname" "$location/$new_name-$tmpname"
 clean

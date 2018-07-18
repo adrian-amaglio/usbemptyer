@@ -13,10 +13,10 @@
     <form id="name-form" v-show="name_input">
       <label for="name">Ton nom :</label>
       <input type="text" v-model="name" placeholder="Nom" name="name" id="name" />   
-      <label for="content">Type de média (audio/vidéo/image) :</label>
-      <input type="text" v-model="type" placeholder="vidéo" name="content" id="name" />   
+      <label for="secname">Qui as tu interviewé ?</label>
+      <input type="secname" v-model="secname" placeholder="passants" name="content" id="name" />   
       <label for="description">Description courte :</label>
-      <input type="text" v-model="description" placeholder="courreurs" name="description" id="name" />   
+      <input type="text" v-model="description" placeholder="catering" name="description" id="name" />   
       <input type="submit" value="Valider" />
     </form>
     <ul><li v-for="file in files">{{ file }}</li></div>

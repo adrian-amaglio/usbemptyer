@@ -6,7 +6,7 @@ window.onload = function (){
 			api: "/api/1.0",
       directory: "",
       name: "",
-      type: "",
+      secname: "",
       description: "",
       files: [],
       name_input: false,
@@ -26,12 +26,11 @@ window.onload = function (){
       send_form: function(e){
         if (e.preventDefault) e.preventDefault();
         this.name_input = false
-        this.websocket.send(JSON.stringify({"directory":this.directory, "name": this.type +'-'+ this.name +'-'+ this.description}))
+        this.websocket.send(JSON.stringify({"directory":this.directory, "name": this.name +'-'+ this.secname +'-'+ this.description}))
         this.message('sucess', 'Form sent')
       },
       message: function(level, content){
         if (level != 'futile') {
-          alert(content)
           content = ' -- ' + content + ' -- '
         }
         this.files.push(content)

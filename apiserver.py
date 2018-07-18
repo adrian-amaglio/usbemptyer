@@ -39,20 +39,20 @@ def echo(ws):
 
 ######################### HTTP API #################################
 @get('/end/<directory>')
-def end(mac, usb, directory):
+def end(directory):
   send('end', directory)
   return names[directory] if directory in names else 'no'
 
 @get('/start/<directory>')
-def start(mac, usb, directory):
+def start(directory):
   send('start', directory)
 
 @get('/file/<directory>/<filename>')
-def file(mac, usb, directory, filename):
+def file(directory, filename):
   send('file', directory, filename)
 
 @get('/fail/<directory>/<message>')
-def fail(mac, usb, directory, message):
+def fail(directory, message):
   send('fail', directory, message)
 
 run(host='localhost', port=49291, server=GeventWebSocketServer)
