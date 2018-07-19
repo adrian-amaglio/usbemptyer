@@ -2,7 +2,8 @@
 declare -A usage
 declare -A varia
 
-default_host="http://local.dahus:49291"
+default_host="http://localhost:49291"
+#default_host="http://local.dahus:49291"
 
 version=1.0
 summary="$0 [options]"
@@ -48,6 +49,7 @@ usage[u]="Udev system file"
 varia[u]=udev_file
 udev_file="/etc/udev/rules.d/usb-emptyer.rules"
 
+#XXX the %notation is replaced by udev
 usage[s]="Date format string for temporar name"
 varia[s]=date_format
 date_format="+%Y.%m.%d-%H.%M.%S"
@@ -59,11 +61,13 @@ notify_failure="$default_host/fail"
 . driglibash-args
 root_or_die
 
+sleep 2
+
 if [ "$install" == true ] ; then
   current_dir="$(where "$0")"
   # TODO escape the executable location
   cat > "$udev_file" <<-EOF
-    SUBSYSTEM=="block", KERNEL=="*", RUN+="$current_dir/usbemptyer -d %k -x '$notify_failure' -l '$location' -f '$notify_file' -n '$notify_end' -b '$notify_start' -s '$date_format' -e '$regex'"
+    SUBSYSTEM=="block", KERNEL=="*", RUN+="$current_dir/usbemptyer -d %k -x '$notify_failure' -l '$location' -f '$notify_file' -n '$notify_end' -b '$notify_start' -e '$regex'"
 EOF
   udevadm control --reload-rules
   exit 0
@@ -76,8 +80,8 @@ if [ "$ACTION" != "add" ] ; then die "Action '$ACTION' not supported" ; fi # TO
 # Construct needed strings
 tmpname="$(date $date_format)"
 
-run mkdir -p "$location/$tmpname"
 run mount "/dev/$device" "/mnt"
+run mkdir -p "$location/$tmpname"
 clean "umount /mnt"
 
 if [ -n "$notify_start" ] ; then curl "$notify_start/$tmpname" ; fi

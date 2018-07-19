@@ -2,24 +2,46 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" href="css/main.css">
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+  <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="js/vue.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
   <script type="text/javascript" src="js/app.js"></script>
   <title>USB emptyer</title>
 </head>
 <body>
-  <main id="main">
-    <div>{{ connected }}</div>
-    <form id="name-form" v-show="name_input">
-      <label for="name">Ton nom :</label>
-      <input type="text" v-model="name" placeholder="Nom" name="name" id="name" />   
-      <label for="secname">Qui as tu interviewé ?</label>
-      <input type="secname" v-model="secname" placeholder="passants" name="content" id="name" />   
-      <label for="description">Description courte :</label>
-      <input type="text" v-model="description" placeholder="catering" name="description" id="name" />   
-      <input type="submit" value="Valider" />
+  <main id="main" class="container">
+  <p class="col-sm-4 alert" v-bind:class="class_connected()">{{ connected.message }}</p>
+  <p class="col-sm-8 alert" v-bind:class="class_state()">{{ state.message }} </p>
+  <div class="col-sm-6 height-box">
+    <form id="name-form" v-show="name_input" class="no-margin">
+      <div class="form-group">
+        <label for="name">Ton nom :</label>
+        <input type="text" v-model="infos.name" placeholder="Nom" name="name" id="name" class="form-control"/>
+      </div>
+
+      <div class="form-group">
+        <label for="type">Que veux tu déposer ?</label>
+        <select type="text" v-model="infos.type" type="type" id="type" class="form-control">
+          <option value="sound" selected="selected">Son</option>
+          <option value="image">Image</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="description">Description courte (qui ? quoi ?) :</label>
+        <input type="text" v-model="infos.description" placeholder="itw catering" name="description" id="description" class="form-control"/>
+      </div>
+
+      <input type="submit" value="Valider" class="btn btn-default"/>
     </form>
-    <ul><li v-for="file in files">{{ file }}</li></div>
+  </div>
+  <ul class="col-sm-6 height-box well well-lg">
+    <li class="header">Fichiers copiés</li>
+    <li v-for="file in files">{{ file }}</li>
+  </ul>
   </main> 
 </body>
 </html>

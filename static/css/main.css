@@ -1,0 +1,12 @@
+html, body, main{
+  height:99%;
+}
+
+.height-box{
+  height:80%;
+}
+
+li.header{
+  text-width: bold;
+  list-style-type: none;
+}
