@@ -4,11 +4,8 @@
 root_or_die
 dir="$(where $0)"
 
-"$dir/usbemptyer" -i
-
-nginx -c "$dir/nginx.conf"
+run nginx -c "$dir/nginx.conf"
 clean 'killall nginx'
-
-"$dir/apiserver.py"
+run "$dir/apiserver.py"
 
 clean

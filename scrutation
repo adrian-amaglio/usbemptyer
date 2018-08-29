@@ -1,0 +1,1 @@
+   /home/py/git/usbemptyer/usbemptyer -x 'http://localhost:49291/fail' -l '/home/py/git/usbemptyer/data' -f 'http://localhost:49291/file' -n 'http://localhost:49291/end' -b 'http://localhost:49291/start' -e '*.wav' -d "

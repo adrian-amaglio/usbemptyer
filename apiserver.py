@@ -1,19 +1,13 @@
 #!/usr/bin/python
 
-import os, json
+import os, json, sys
 from bottle import route, run, template, get, post
 from bottle.ext.websocket import GeventWebSocketServer, websocket
 from geventwebsocket.exceptions import WebSocketError
 
 # The global websockets to controll the web interface
 w = None
-
-# The dictionary containing all names. Not used yet.
-# names = {
-#   '04:00:7b:83:14:59' : {'':1, '':8, '':3},
-#   '04:01:7b:83:14:59' : {'':4, '':9, '':5}
-# }
-names = {}
+name = None
 
 def send(action, directory, info=""):
   if w != None:
@@ -31,9 +25,7 @@ def echo(ws):
     try:
       message = w.receive()
       if message is not None:
-        print(message)
-        name = json.loads(message)
-        names[name['directory']] = name['name']
+         name = message
     except WebSocketError:
       print('Socket Error. Maybe a disconnection.')
       break
@@ -42,10 +34,11 @@ def echo(ws):
 @get('/end/<directory>')
 def end(directory):
   send('end', directory)
-  return names[directory] if directory in names else 'no'
+  return name if name is not None else 'no'
 
 @get('/start/<directory>')
 def start(directory):
+  name = None
   send('start', directory)
 
 @get('/file/<directory>/<filename>')

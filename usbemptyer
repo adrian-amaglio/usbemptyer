@@ -1,4 +1,5 @@
 #!/bin/bash
+. driglibash-base
 declare -A usage
 declare -A varia
 
@@ -8,13 +9,17 @@ default_host="http://localhost:49291"
 version=1.0
 summary="$0 [options]"
 
+usage[a]="Action (add/remove)"
+varia[a]=action
+action="add"
+
 usage[d]="The device that will be copied"
 varia[d]=device
 device=""
 
-usage[i]="Install and exit"
+usage[i]="Install and exit (scrutation or udev)"
 varia[i]=install
-install=false
+install=
 
 usage[e]="Regular expression. Files that match it recursiverly will be copied. Casse INsensitive"
 varia[e]=regex
@@ -27,7 +32,7 @@ remove=false
 # TODO make it a table, and save to several places
 usage[l]="Location where file will be sent. Support local filesystem"
 varia[l]=location
-location="/data/bruts"
+location="$(where)/data"
 
 usage[n]="Notify when the copy is complete. Send an http get request."
 varia[n]=notify_end
@@ -62,9 +67,30 @@ notify_failure="$default_host/fail"
 root_or_die
 
 sleep 2
-
-if [ "$install" == true ] ; then
-  current_dir="$(where "$0")"
+current_dir="$(where "$0")"
+if [ "$install" == "scrutation" ] ; then
+  yell "Installing for scrutation"
+  cat > "/etc/systemd/system/usbemptyer-scrutation.service" <<-EOF
+   [Unit]
+   Description=Usb plug detector
+   After=multi-user.target
+   [Service]
+   User=root
+   WorkingDirectory=$location
+   Type=idle
+   ExecStart=/bin/bash -c "$(where)/scrutation"
+   RemainAfterExit=yes
+   [Install]
+   WantedBy=multi-user.target
+EOF
+cat > "$(where)/scrutation" <<-EOF
+   $current_dir/usbemptyer -x '$notify_failure' -l '$location' -f '$notify_file' -n '$notify_end' -b '$notify_start' -e '$regex' -d 
+EOF
+  systemctl enable usbemptyer-scrutation
+  systemctl start usbemptyer-scrutation
+  exit 0
+elif [ "$install" == "udev" ] ; then
+  yell "Installing for udev"
   # TODO escape the executable location
   cat > "$udev_file" <<-EOF
     SUBSYSTEM=="block", KERNEL=="*", RUN+="$current_dir/usbemptyer -d %k -x '$notify_failure' -l '$location' -f '$notify_file' -n '$notify_end' -b '$notify_start' -e '$regex'"
@@ -75,7 +101,8 @@ fi
 
 # Test for mandatory arguments
 if [ -z "$location" ] ; then die "No destination supplied" ; fi
-if [ "$ACTION" != "add" ] ; then die "Action '$ACTION' not supported" ; fi # TODO filter udev
+if [ -n "$ACTION" ] ; then action="$ACTION" ; fi
+if [ "$action" != "add" ] ; then die "Action '$action' not supported" ; fi # TODO filter udev
 
 # Construct needed strings
 tmpname="$(date $date_format)"
@@ -99,12 +126,17 @@ done
 
 # Terminating
 #if [ "$remove" == true ] ; then run rm -rf "/mnt/*" ; fi
-new_name="no"
-while [ "$new_name" == "no" ] ; do
-  new_name=$(curl "$notify_end/$tmpname")
+infos="no"
+while [ "$infos" == "no" ] ; do
+  infos=$(curl "$notify_end/$tmpname" | iconv -f utf-8 -t ascii//translit | tr '[:space:]' '.' |  tr -dc '[:alnum:][:digit:][=.=]')
   sleep 3
 done
-mv "$location/$tmpname" "$location/$tmpname--$new_name"
+
+type=$(echo "$infos" | jq -r .type)
+name=$(echo "$infos" | jq -r .name)
+descripiton=$(echo "$infos" | jq -r .description)
+new_name="$location/$type/$tmpname--$name-$descripiton"
+mv "$location/$tmpname" "$new_name"
 
 run find /mnt -iname "$regex" -exec rm "{}" \;
 clean
